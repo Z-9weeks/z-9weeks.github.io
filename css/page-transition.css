@@ -1,0 +1,49 @@
+/* ============================================================
+   页面平滑切换（跨文档 View Transitions）
+   文件：source/css/page-transition.css
+
+   不改变站点结构：仍由浏览器正常加载新页面，
+   只是在支持的浏览器里把“白屏一闪”换成连续过渡。
+   ============================================================ */
+
+@view-transition {
+  navigation: auto;
+}
+
+/* 整页：旧页面淡出、新页面淡入，代替瞬间白屏 */
+::view-transition-group(root),
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 左侧头像：给同一个元素命名后，浏览器会把它当作“同一个东西”平滑过渡，
+   不会再出现每次跳转都重新闪一下的情况 */
+.brand-image--avatar {
+  view-transition-name: site-avatar;
+}
+
+::view-transition-group(site-avatar) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(site-avatar),
+::view-transition-new(site-avatar) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 减弱动态效果：直接切换，不做过渡 */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  ::view-transition-group(site-avatar),
+  ::view-transition-old(site-avatar),
+  ::view-transition-new(site-avatar) {
+    animation-duration: 1ms !important;
+    animation-delay: 0s !important;
+  }
+}
