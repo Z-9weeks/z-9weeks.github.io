@@ -28,11 +28,41 @@
     { id: 'stardust', name: '星尘' }
   ];
   var STORE_KEY = 'z9weeks.homeCover.variant.v2';
+  // 本次访问是否已经进入过博客；sessionStorage 在同一标签页内跨页面有效
+  var ENTERED_KEY = 'z9weeks.homeCover.entered.v1';
 
-  // 只出现在首页第一页；分类、标签、归档、文章页都不生成封面
-  if (document.body.getAttribute('data-page-type') !== 'index') return;
-  if (document.body.getAttribute('data-page-layout') !== '') return;
-  if (/\/page\/\d+(\/index\.html)?\/?$/.test(location.pathname)) return;
+  // 只有真正的首页才生成封面（/ 或 /index.html）。
+  // 分类、标签详情、归档等子页面的 data-page-layout 同样是 ''，
+  // 不能用 body 属性判断，否则进入博客后点这些页面会再次弹出封面。
+  function isHomePage() {
+    var path = location.pathname.replace(/\/index\.html?$/i, '/');
+    if (path.length > 1) path = path.replace(/\/+$/, '');
+    return path === '' || path === '/';
+  }
+
+  function hasEntered() {
+    try {
+      return window.sessionStorage.getItem(ENTERED_KEY) === '1';
+    } catch (error) {
+      /* 隐私模式下 sessionStorage 可能不可用，忽略即可 */
+    }
+    return false;
+  }
+
+  function markEntered() {
+    try {
+      window.sessionStorage.setItem(ENTERED_KEY, '1');
+    } catch (error) {
+      /* 忽略 */
+    }
+  }
+
+  // 本次访问已经进过站内任意页面，就直接跳过封面
+  if (!isHomePage()) {
+    markEntered();
+    return;
+  }
+  if (hasEntered()) return;
   if (document.getElementById('home-cover')) return;
 
   var reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
@@ -578,6 +608,8 @@
     if (entered) return;
     entered = true;
     running = false;
+    // 记住“本次访问已进入博客”，之后在站内跳转（包括点“博客”回首页）不再弹封面
+    markEntered();
 
     if (raf) window.cancelAnimationFrame(raf);
     window.clearTimeout(typeTimer);
